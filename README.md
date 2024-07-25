@@ -40,3 +40,6 @@ During the texture synthesis process, several observations and potential issues 
 2. **Absence of Original Patterns**:
 	- The synthesized image does not adequately reproduce the similar patterns present in the original image. This might be due to an incorrect implementation.
 	- Related to this, one possible drawback of the algorithm is that an error in generating one pixel can propagate to subsequent pixels, as each pixel is generated based on its predecessors. 
+
+3. **Long Execution Time**:
+	- The brute-force search for the best-matched neighborhood in the source image for each pixel in the target image takes a long time to execute. For example, the generation of a 64x64 image took 6:21 minutes, and the generation of a 128x128 image took 21:31 minutes.
