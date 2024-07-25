@@ -16,8 +16,8 @@ You can try the same by:
 	python v1.py
 	```
 
-3. The result will be saved as `161_128_reconstructed.jpg` (saved in the root directory).
-	- There might be some other images of the intermediate results also saved in the root directory.
+3. The result will be saved as `imgs/161_128_reconstructed.jpg`.
+	- There might be some other images of the intermediate results also saved in the `imgs/` directory.
 
 NOTE:
-To search for the best-matched neighborhood in the source image for each pixel in the generated image, I have used a brute-force search. Therefore, it takes a very long time to generate the image.
+To search for the best-matched neighborhood in the source image for each pixel in the generated (target) image, I have used a brute-force search. Therefore, it takes a very long time to generate the image.
