@@ -5,27 +5,41 @@ import itertools
 
 def extend_image_left_top_loop(image, size=2):
 	height, width, channels = image.shape
-	extended_img = np.zeros((height+size, width+size, channels), np.uint8)
+	# NOTE: the extra rightmost 2 columns are required for the extended image of the original image (that area will be masked by the patch)
+	extended_img = np.zeros((height+size, width+size+size, channels), np.uint8)
+	# Fill the top 2 rows with the same values as the bottom 2 rows of `image`
 	for i in range(size):
 		for j in range(size, width+size):
 			for k in range(channels):
 				extended_img[i][j][k] = image[i-size][j-size][k]
 
+	# Fill the left 2 columns with the same values as the right 2 columns of `image`
 	for j in range(size):
 		for i in range(size, height+size):
 			for k in range(channels):
 				extended_img[i][j][k] = image[i-size][j-size][k]
 
+	# Fill the top-left 2x2 corner with the same values as the bottom-right 2x2 corner of `image`
 	for i in range(size):
 		for j in range(size):
 			for k in range(channels):
 				extended_img[i][j][k] = image[i-size][j-size][k]
 
-
+	# Fill the rest of the `image` in the extended image
 	for i in range(size, height+size):
 		for j in range(size, width+size):
 			for k in range(channels):
 				extended_img[i][j][k] = image[i-size][j-size][k]
+
+	# The following is only required for the extended image of the original image
+	# Fill the rightmost 2 columns with the same values as the left 2 rows of `image`
+	for j in range(width-size, width):
+		for i in range(size, height+size):
+			for k in range(channels):
+				extended_img[i][j][k] = image[size-(width-i)][j-size][k]
+
+	# No need to fill the bottom 2 rows (as the patch will never masks the bottom 2 rows)
+
 	
 	return extended_img
 
@@ -50,19 +64,19 @@ def extract_patch(extended_img, i, j):
 		"""
 
 		patch_gen_img = []
-		patch_gen_img.append(extended_new_img[i-2][j-2])
-		patch_gen_img.append(extended_new_img[i-2][j-1])
-		patch_gen_img.append(extended_new_img[i-2][j])
-		patch_gen_img.append(extended_new_img[i-2][j+1])
-		patch_gen_img.append(extended_new_img[i-2][j+2])
-		patch_gen_img.append(extended_new_img[i-1][j-2])
-		patch_gen_img.append(extended_new_img[i-1][j-1])
-		patch_gen_img.append(extended_new_img[i-1][j])
-		patch_gen_img.append(extended_new_img[i-1][j+1])
-		patch_gen_img.append(extended_new_img[i-1][j+2])
-		patch_gen_img.append(extended_new_img[i][j-2])
-		patch_gen_img.append(extended_new_img[i][j-1])
-		patch_gen_img.append(extended_new_img[i][j])
+		patch_gen_img.append(extended_img[i-2][j-2])
+		patch_gen_img.append(extended_img[i-2][j-1])
+		patch_gen_img.append(extended_img[i-2][j])
+		patch_gen_img.append(extended_img[i-2][j+1])
+		patch_gen_img.append(extended_img[i-2][j+2])
+		patch_gen_img.append(extended_img[i-1][j-2])
+		patch_gen_img.append(extended_img[i-1][j-1])
+		patch_gen_img.append(extended_img[i-1][j])
+		patch_gen_img.append(extended_img[i-1][j+1])
+		patch_gen_img.append(extended_img[i-1][j+2])
+		patch_gen_img.append(extended_img[i][j-2])
+		patch_gen_img.append(extended_img[i][j-1])
+		patch_gen_img.append(extended_img[i][j])
 		
 		return patch_gen_img
 
@@ -116,14 +130,16 @@ for j in range(width-2, width):
 		for k in range(3):
 			new_img[i][j][k] = np.random.randint(0, 256, dtype=np.uint8)
 
-# Save the image
+# Save the image (initial image with rightmost 2 columns and bottom 2 rows filled with random values)
 cv2.imwrite('imgs/161_128.jpg', new_img)
 
 # Create an extended image with leftmost 2 columns and top 2 rows are filled with the same values as the rightmost 2 columns and bottom 2 rows of the new image
 extended_new_img = extend_image_left_top_loop(new_img)
+# Save the extended image of the new image
 cv2.imwrite('imgs/161_128_2.jpg', extended_new_img)
 
 extended_org_img = extend_image_left_top_loop(img)
+# Save the extended image of the original image
 cv2.imwrite('imgs/161_ext.jpg', extended_org_img)
 
 # The rightmost 2 columns and bottom 2 rows of the new image are filled with random values, so no need to calc in the above
@@ -147,7 +163,10 @@ for i, j in tqdm(itertools.product(range(2, height), range(2, width)), total=(he
 		
 		# Update the pixel value of the new image
 		for k in range(3):
-			new_img[i][j][k] = extended_org_img[argmin_i][argmin_j][k]
+			new_img[i-2][j-2][k] = extended_org_img[argmin_i][argmin_j][k]
+		
+		# Save the image while updating the pixel value
+		cv2.imwrite('imgs/161_128_reconstructed.jpg', new_img)
 
-# Save the image
+# Save the image (final)
 cv2.imwrite('imgs/161_128_reconstructed.jpg', new_img)
